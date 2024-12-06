@@ -102,6 +102,10 @@ vec4 shading_phong(light li, vec3 e, vec3 p, vec3 s, vec3 n)
     vec3 difColor = kd * li.dif.rgb * max(0., dot(n, l));
     vec3 specColor = ks * li.spec.rgb * pow(max(dot(v, r), 0.), shininess);
 
+	if (p.y <= 0) {
+		return vec4(ambColor + difColor + specColor + vec3(0, 0.1, 0.4), 1); //water
+	}
+
     return vec4(ambColor + difColor + specColor, 1);
 }
 
@@ -128,3 +132,4 @@ void main()
 {
     frag_color = vec4(shading_terrain(vtx_pos), 1.0);
 }
+
