@@ -27,6 +27,9 @@ class MyDriver : public OpenGLViewer
     OpenGLBgEffect *bgEffect = nullptr;
     OpenGLSkybox *skybox = nullptr;
     clock_t startTime;
+    
+    OpenGLTriangleMesh *moon = nullptr;
+    OpenGLTriangleMesh *bunny = nullptr;
 
 public:
     virtual void Initialize()
@@ -55,6 +58,8 @@ public:
         OpenGLShaderLibrary::Instance()->Add_Shader_From_File("shaders/terrain.vert", "shaders/terrain.frag", "terrain");
         OpenGLShaderLibrary::Instance()->Add_Shader_From_File("shaders/skybox.vert", "shaders/skybox.frag", "skybox");
 
+
+        OpenGLShaderLibrary::Instance()->Add_Shader_From_File("shaders/water.vert", "shaders/water.frag", "water");
         
 
         //// Load all the textures you need for the scene
@@ -150,12 +155,22 @@ public:
             //// create object by reading an obj mesh
             auto sphere = Add_Obj_Mesh_Object("obj/sphere.obj");
 
+            // float x = fmod(currentTime, 5.0); //complete a circle every 5 secs
+            // float radius = 10.0;
+            // float pi = 3.14159265358979323846;
+            // float rad = 360 * pi / 180;
+
             //// set object's transform
             Matrix4f t;
             t << 1, 0, 0, 4,
                 0, 1, 0, 3,
                 0, 0, 1, 0,
                 0, 0, 0, 1;
+            //rotate z-axis
+            // r << cos(rotationAngle), -sin(rotationAngle), 0, 0,
+            //     sin(rotationAngle), cos(rotationAngle), 0,   0,
+            //     0,      0,              1, 1;
+            
             sphere->Set_Model_Matrix(t);
 
             //// set object's material
@@ -178,42 +193,46 @@ public:
         //BUNNY
         {
             //// create object by reading an obj mesh
-            auto bunny = Add_Obj_Mesh_Object("obj/bunny.obj");
-
+            auto object = Add_Obj_Mesh_Object("obj/bunny.obj");
+            bunny = object;
             //// set object's transform
             Matrix4f t, r;
-            t << 1, 0, 0, 0,
-                0, 1, 0, 5,
-                0, 0, 1, 0,
+            t << 0.5, 0, 0, 0,
+                0, 0.5, 0, 5,
+                0, 0, 0.5, 0,
                 0, 0, 0, 1;
-            bunny->Set_Model_Matrix(t);
+            object->Set_Model_Matrix(t);
         
             //// set object's material
-            bunny->Set_Ka(Vector3f(0., 0., 0.));
-            bunny->Set_Kd(Vector3f(0.7, 0.7, 0.7));
-            bunny->Set_Ks(Vector3f(2, 2, 2));
-            bunny->Set_Shininess(500);
+            object->Set_Ka(Vector3f(0., 0., 0.));
+            object->Set_Kd(Vector3f(0.7, 0.7, 0.7));
+            object->Set_Ks(Vector3f(2, 2, 2));
+            object->Set_Shininess(500);
 
             //// bind texture to object
-            bunny->Add_Texture("tex_color", OpenGLTextureLibrary::Get_Texture("black_color"));
-            //bunny->Add_Texture("tex_normal", OpenGLTextureLibrary::Get_Texture("bunny_normal"));
+            object->Add_Texture("tex_color", OpenGLTextureLibrary::Get_Texture("black_color"));
+            //object->Add_Texture("tex_normal", OpenGLTextureLibrary::Get_Texture("bunny_normal"));
 
             //// bind shader to object
-            bunny->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("basic"));
+            object->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("basic"));
         }
 
 
-        //MOON
+        //MOON 
         {
             //// create object by reading an obj mesh
             auto sphere = Add_Obj_Mesh_Object("obj/sphere.obj");
 
+            moon = sphere; //for rotation with time
             //// set object's transform
+            
+
             Matrix4f t;
-            t << 2, 0, 0, 0,
-                0, 2, 0, 5,
-                0, 0, 2, 0,
+            t << 1, 0, 0, 0,
+                0, 1, 0, 5,
+                0, 0, 1, 0,
                 0, 0, 0, 1;
+            
             
             sphere->Set_Model_Matrix(t);
 
@@ -304,7 +323,8 @@ public:
             water->Set_Shininess(128.f);
 
             //// bind shader to object (we do not bind texture for this object because we create noise for texture)
-            water->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("blend"));
+            water->Add_Texture("tex_color", OpenGLTextureLibrary::Get_Texture("black_color"));
+            water->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("water"));
         }
 
         //// Here we show an example of adding a transparent object with alpha blending
@@ -355,7 +375,7 @@ public:
 
         //// Here we show an example of shading (ray-tracing) a sphere with environment mapping
         //BLACK SPHERE
-        /*==
+        
         {
             //// create object by reading an obj mesh
             auto sphere2 = Add_Obj_Mesh_Object("obj/sphere.obj");
@@ -363,7 +383,7 @@ public:
             //// set object's transform
             Matrix4f t;
             t << .6, 0, 0, 0,
-                0, .6, 0, -.5,
+                0, .6, 0, 10,
                 0, 0, .6, 1,
                 0, 0, 0, 1;
             sphere2->Set_Model_Matrix(t);
@@ -371,7 +391,7 @@ public:
             //// bind shader to object
             sphere2->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("environment")); // bind shader to object
         }
-        */
+        
 
         //// Here we create a mesh object with two triangle specified using a vertex array and a triangle array.
         //// This is an example showing how to create a mesh object without reading an .obj file. 
@@ -438,6 +458,7 @@ public:
     //// Go to next frame
     virtual void Toggle_Next_Frame()
     {
+        
         for (auto &mesh_obj : mesh_object_array)
             mesh_obj->setTime(GLfloat(clock() - startTime) / CLOCKS_PER_SEC);
 
@@ -449,7 +470,27 @@ public:
 
         if (skybox){
             skybox->setTime(GLfloat(clock() - startTime) / CLOCKS_PER_SEC);
-        }   
+        }
+        
+        if (moon) {
+            Matrix4f tmoon, tbunny;
+            // r << cos(GLfloat(clock()) / CLOCKS_PER_SEC), -sin(GLfloat(clock()) / CLOCKS_PER_SEC), 0, 0,
+            //     sin(GLfloat(clock()) / CLOCKS_PER_SEC), cos(GLfloat(clock()) / CLOCKS_PER_SEC), 0, 0,
+            //     0, 0, 1, 0,
+            //     0, 0, 0, 1;
+            tmoon << 1, 0, 0, 0 + 10*cos(GLfloat(clock()) / CLOCKS_PER_SEC),
+                0, 1, 0, 5 + 10* sin(GLfloat(clock()) / CLOCKS_PER_SEC),
+                0, 0, 1, 0,
+                0, 0, 0, 1;
+            moon->Set_Model_Matrix(tmoon);
+
+            tbunny << 0.5, 0, 0, 0 + 10*cos(GLfloat(clock()) / CLOCKS_PER_SEC),
+                0, 0.5, 0, 5 + 10*sin(GLfloat(clock()) / CLOCKS_PER_SEC),
+                0, 0, 0.5, 0,
+                0, 0, 0, 1;
+            bunny->Set_Model_Matrix(tbunny);
+
+        }
 
         OpenGLViewer::Toggle_Next_Frame();
     }
