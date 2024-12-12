@@ -50,7 +50,21 @@ out vec4 frag_color;
 
 vec3 shading_texture_with_phong(light li, vec3 e, vec3 p, vec3 s, vec3 n)
 {
-    return vec3(0.0);
+    vec3 color = vec3(0);
+    vec3 l = normalize(s - p);
+    float maxcos = max(0, dot(l, n));
+    vec3 ambientColor = (ka * li.amb.rgb);
+    vec3 lambertianColor = (kd * li.dif.rgb * maxcos);
+	//lambertianColor = lambertianColor / pow(length(s - p),2 );
+
+
+    vec3 r = reflect(l * -1, n);
+    vec3 v = normalize(e - p);
+    float maxPhong = pow(max(0, dot(v, r)), shininess);
+    color = ambientColor + lambertianColor + (ks * li.spec.rgb * maxPhong);
+    return color;
+
+    
 }
 
 vec3 read_normal_texture()
@@ -69,6 +83,11 @@ void main()
 
     vec3 texture_normal = read_normal_texture();
     vec3 texture_color = texture(tex_color, vtx_uv).rgb;
-
-    frag_color = vec4(texture_color.rgb, 1);
+    vec3 color = vec3(0);
+    for(int i = 0; i < lt_att[0]; i++) {
+        vec3 s = lt[i].pos.xyz;
+        color += shading_texture_with_phong(lt[i], e, p, s, N);
+    }
+    frag_color = vec4(color*0.5 + vec3(0.5,0.6,0.6), 0.9);
+    
 }
