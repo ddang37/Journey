@@ -70,5 +70,5 @@ void main()
     vec3 texture_normal = read_normal_texture();
     vec3 texture_color = texture(tex_color, vtx_uv).rgb;
 
-    frag_color = vec4(texture_color.rgb, 1.0);
+    frag_color = vec4(texture_color.rgb, 1);
 }

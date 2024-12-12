@@ -41,6 +41,14 @@ uniform vec3 kd;            /* object material diffuse */
 uniform vec3 ks;            /* object material specular */
 uniform float shininess;    /* object material shininess */
 
+struct myLight 
+{
+    vec3 position;          /* light position */
+    vec3 Ia;                /* ambient intensity */
+    vec3 Id;                /* diffuse intensity */
+    vec3 Is;                /* specular intensity */     
+};
+
 vec2 hash2(vec2 v)
 {
 	vec2 rand = vec2(0,0);
@@ -94,6 +102,7 @@ vec3 compute_normal(vec2 v, float d)
 
 vec4 shading_phong(light li, vec3 e, vec3 p, vec3 s, vec3 n) 
 {
+
     vec3 v = normalize(e - p);
     vec3 l = normalize(s - p);
     vec3 r = normalize(reflect(-l, n));
@@ -103,10 +112,36 @@ vec4 shading_phong(light li, vec3 e, vec3 p, vec3 s, vec3 n)
     vec3 specColor = ks * li.spec.rgb * pow(max(dot(v, r), 0.), shininess);
 
 	if (p.y <= 0) {
-		return vec4(ambColor + difColor + specColor + vec3(0, 0.1, 0.4), 1); //water
+		return vec4(ambColor + difColor + specColor + vec3(0, 0.1, 0.4), 1); //water on the ground
+	} else if ((p.x + 3)*(p.x + 3) + (p.z-3)*(p.z-3) < 8) {
+		return vec4(2, 3, 4.5, 1);
+	} else if ((p.x + 3)*(p.x + 3) + (p.z-3)*(p.z-3) > 14) {
+		return vec4(ambColor + difColor + specColor - vec3(1, 0, 0.8), 1); //green lands
 	}
+	
+	
 
-    return vec4(ambColor + difColor + specColor, 1);
+    return vec4(ambColor + difColor + specColor, 1); //ground color
+}
+
+vec4 my_shading_phong(myLight light, vec3 e, vec3 p, vec3 s, vec3 n) 
+{
+    /* your implementation starts */
+    vec3 l = normalize(s - p);
+    float maxcos = max(0, dot(l, n));
+    vec3 lambertianColor = (ka * light.Ia) + (kd * light.Id * maxcos);
+
+
+    vec3 r = reflect(l * -1, n);
+    vec3 v = normalize(e - p);
+    float maxPhong = pow(max(0, dot(v, r)), shininess);
+    vec3 phongColor = lambertianColor + (ks * light.Is * maxPhong);
+
+
+    return vec4(phongColor, 1.f);
+    /* your implementation ends */
+
+	
 }
 
 // Draw the terrain
@@ -121,6 +156,12 @@ vec3 shading_terrain(vec3 pos) {
 
     vec3 color = shading_phong(lt[0], e, p, s, n).xyz;
 
+	const myLight light1 = myLight(/*position*/ vec3(0, 5, 0), 
+                                /*Ia*/ vec3(0.1, 0.1, 0.1), 
+                                /*Id*/ vec3(1.0, 1.0, 1.0), 
+                                /*Is*/ vec3(0.5, 0.5, 0.5));
+	color += my_shading_phong(light1, e, p, light1.position, n).xyz;
+
 	float h = pos.z + .8;
 	h = clamp(h, 0.0, 1.0);
 	vec3 emissiveColor = mix(vec3(.4,.6,.2), vec3(.4,.3,.2), h);
@@ -130,6 +171,14 @@ vec3 shading_terrain(vec3 pos) {
 
 void main()
 {
-    frag_color = vec4(shading_terrain(vtx_pos), 1.0);
+	
+
+
+	if ((vtx_pos.x)*(vtx_pos.x) + (vtx_pos.y)*(vtx_pos.y) < 6) {
+		frag_color = vec4(vec3(0.9, 1, 1), 0.8);
+	} else {
+	 	frag_color = vec4(shading_terrain(vtx_pos), 1.0);
+	}
+
 }
 

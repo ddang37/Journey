@@ -60,6 +60,8 @@ public:
 
 
         OpenGLShaderLibrary::Instance()->Add_Shader_From_File("shaders/water.vert", "shaders/water.frag", "water");
+        OpenGLShaderLibrary::Instance()->Add_Shader_From_File("shaders/tree.vert", "shaders/tree.frag", "tree");
+        OpenGLShaderLibrary::Instance()->Add_Shader_From_File("shaders/basic.vert", "shaders/moon.frag", "moon");
         
 
         //// Load all the textures you need for the scene
@@ -79,8 +81,10 @@ public:
         OpenGLTextureLibrary::Instance()->Add_Texture_From_File("tex/buzz_color.png", "buzz_color");
         OpenGLTextureLibrary::Instance()->Add_Texture_From_File("tex/star.png", "star_color");
 
-        OpenGLTextureLibrary::Instance()->Add_Texture_From_File("tex/moon.png", "moon_color");
+        OpenGLTextureLibrary::Instance()->Add_Texture_From_File("tex/moon.jpg", "moon_color");
         OpenGLTextureLibrary::Instance()->Add_Texture_From_File("tex/black.jpg", "black_color");
+ 
+  
 
 
         
@@ -96,8 +100,8 @@ public:
         // opengl_window->Add_Light(Vector3f(0, 0, -5), Vector3f(0.1, 0.1, 0.1), Vector3f(0.9, 0.9, 0.9), Vector3f(0.5, 0.5, 0.5));
         // opengl_window->Add_Light(Vector3f(-5, 1, 3), Vector3f(0.1, 0.1, 0.1), Vector3f(0.9, 0.9, 0.9), Vector3f(0.5, 0.5, 0.5));
 
-        opengl_window->Add_Light(Vector3f(0, 5, 0), Vector3f(0.1, 0.1, 0.1), Vector3f(0.9, 0.9, 0.9), Vector3f(0.9, 0.9, 0.9));
-
+        opengl_window->Add_Light(Vector3f(-6.5, 5, 6.5), Vector3f(0.1, 0.1, 0.1), Vector3f(0.9, 0.9, 0.9), Vector3f(0.9, 0.9, 0.9));
+        
 
         //// Add the background / environment
         //// Here we provide you with four default options to create the background of your scene:
@@ -151,6 +155,7 @@ public:
         //// Background Option (4): Sky sphere
         //// Here we provide a default implementation of a textured sphere; customize it for your own sky sphere
         ///EARTH
+        /*
         {
             //// create object by reading an obj mesh
             auto sphere = Add_Obj_Mesh_Object("obj/sphere.obj");
@@ -162,9 +167,9 @@ public:
 
             //// set object's transform
             Matrix4f t;
-            t << 1, 0, 0, 4,
+            t << 1, 0, 0, 10,
                 0, 1, 0, 3,
-                0, 0, 1, 0,
+                0, 0, 1, -10,
                 0, 0, 0, 1;
             //rotate z-axis
             // r << cos(rotationAngle), -sin(rotationAngle), 0, 0,
@@ -186,6 +191,8 @@ public:
             //// bind shader to object
             sphere->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("basic"));
         }
+        */
+        
 
     
 
@@ -198,7 +205,7 @@ public:
             //// set object's transform
             Matrix4f t, r;
             t << 0.5, 0, 0, 0,
-                0, 0.5, 0, 5,
+                0, 0.5, 0, 3,
                 0, 0, 0.5, 0,
                 0, 0, 0, 1;
             object->Set_Model_Matrix(t);
@@ -229,7 +236,7 @@ public:
 
             Matrix4f t;
             t << 1, 0, 0, 0,
-                0, 1, 0, 5,
+                0, 1, 0, 3,
                 0, 0, 1, 0,
                 0, 0, 0, 1;
             
@@ -237,7 +244,7 @@ public:
             sphere->Set_Model_Matrix(t);
 
             //// set object's material
-            sphere->Set_Ka(Vector3f(0.1, 0.1, 0.1));
+            sphere->Set_Ka(Vector3f(0.6, 0.6, 0.6));
             sphere->Set_Kd(Vector3f(0.7, 0.7, 0.7));
             sphere->Set_Ks(Vector3f(2, 2, 2));
             sphere->Set_Shininess(500);
@@ -247,7 +254,7 @@ public:
             sphere->Add_Texture("tex_color", OpenGLTextureLibrary::Get_Texture("moon_color"));
 
             //// bind shader to object
-            sphere->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("blend"));
+            sphere->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("moon"));
         }
 
         
@@ -306,9 +313,9 @@ public:
                 0, 0, 1, 0,
                 0, -1, 0, 0,
                 0, 0, 0, 1;
-            s << 2, 0, 0, 0,
+            s << 1.9, 0, 0, 0,
                 0, 2, 0, 0,
-                0, 0, 2, 0,
+                0, 0, 1.9, 0,
                 0, 0, 0, 1;
             t << 1, 0, 0, -5,
                  0, 1, 0, 0,
@@ -327,10 +334,48 @@ public:
             water->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("water"));
         }
 
+        //TREE
+        {
+            float pos[10][3] = {{-3., 0.7, -2.8}, {-4, 0.7, -4.3}, {-2, 0.8, -4.1}, {-4, 0.7, -1.8}, 
+                                {-2.6, 0.8, -1.2}, {-1.5, 0.7, -2.1}, {1, 0.7, -2.6}, {0, 0.8, -3.5},
+                                {-4.3, 0.8, -3.2}, {1.2, 0.8, -4.4}};
+            //// create object by reading an obj mesh
+            for (int i = 0; i < 10; i++) {
+                auto object = Add_Obj_Mesh_Object("obj/tree.obj");
+                //// set object's transform
+                Matrix4f t;
+                t << 1.5, 0, 0, pos[i][0],
+                    0, 1.5, 0, pos[i][1],
+                    0, 0, 1.5, pos[i][2],
+                    0, 0, 0, 1;
+                object->Set_Model_Matrix(t);
+
+                auto object2 = Add_Obj_Mesh_Object("obj/tree.obj");
+                //// set object's transform
+                Matrix4f t2;
+                t2 << 1.5, 0, 0, pos[i][2] * -1,
+                    0, 1.5, 0, pos[i][1],
+                    0, 0, 1.5, pos[i][0] * -1,
+                    0, 0, 0, 1;
+                object2->Set_Model_Matrix(t2);
+            
+                //// set object's material
+                
+
+                //// bind shader to object
+
+                object->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("tree"));
+                object2->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("tree"));
+            }
+            
+        }
+        
+
         //// Here we show an example of adding a transparent object with alpha blending
         //// This example will be useful if you implement objects such as tree leaves, grass blades, flower pedals, etc.
         //// Alpha blending will be turned on automatically if your texture has the alpha channel
         ///WINDOW
+        /*
         {
             //// create object by reading an obj mesh
             auto sqad = Add_Obj_Mesh_Object("obj/sqad.obj");
@@ -349,11 +394,13 @@ public:
             //// bind shader to object
             sqad->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("blend"));
         }
+        */
 
         //// Here we show an example of adding a billboard particle with a star shape using alpha blending
         //// The billboard is rendered with its texture and is always facing the camera.
         //// This example will be useful if you plan to implement a CPU-based particle system.
         //STAR
+        /*
         {
             //// create object by reading an obj mesh
             auto sqad = Add_Obj_Mesh_Object("obj/sqad.obj");
@@ -372,10 +419,11 @@ public:
             //// bind shader to object
             sqad->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("billboard"));
         }
+        */
 
         //// Here we show an example of shading (ray-tracing) a sphere with environment mapping
         //BLACK SPHERE
-        
+        /*
         {
             //// create object by reading an obj mesh
             auto sphere2 = Add_Obj_Mesh_Object("obj/sphere.obj");
@@ -391,12 +439,14 @@ public:
             //// bind shader to object
             sphere2->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("environment")); // bind shader to object
         }
+        */
         
 
         //// Here we create a mesh object with two triangle specified using a vertex array and a triangle array.
         //// This is an example showing how to create a mesh object without reading an .obj file. 
         //// If you are creating your own L-system, you may use this function to visualize your mesh.
         //L-SYSTEM
+        /*
         {
             std::vector<Vector3> vertices = { Vector3(0.5, 0, 0), Vector3(1, 0, 0), Vector3(1, 1, 0), Vector3(0, 1, 0) };
             std::vector<Vector3i> elements = { Vector3i(0, 1, 2), Vector3i(0, 2, 3) };
@@ -417,6 +467,7 @@ public:
             obj->Add_Shader_Program(OpenGLShaderLibrary::Get_Shader("basic"));
             
         }
+        */
 
         //// This for-loop updates the rendering model for each object on the list
         for (auto &mesh_obj : mesh_object_array){
@@ -473,20 +524,21 @@ public:
         }
         
         if (moon) {
-            Matrix4f tmoon, tbunny;
+            //float pi = 3.14159265358979323846;
+            Matrix4f tmoon, tbunny, r;
             // r << cos(GLfloat(clock()) / CLOCKS_PER_SEC), -sin(GLfloat(clock()) / CLOCKS_PER_SEC), 0, 0,
             //     sin(GLfloat(clock()) / CLOCKS_PER_SEC), cos(GLfloat(clock()) / CLOCKS_PER_SEC), 0, 0,
             //     0, 0, 1, 0,
             //     0, 0, 0, 1;
-            tmoon << 1, 0, 0, 0 + 10*cos(GLfloat(clock()) / CLOCKS_PER_SEC),
-                0, 1, 0, 5 + 10* sin(GLfloat(clock()) / CLOCKS_PER_SEC),
-                0, 0, 1, 0,
+            tmoon << 1, 0, 0, 5 + 15*cos(GLfloat(clock()) / CLOCKS_PER_SEC),
+                0, 1, 0, 3,
+                0, 0, 1, -5 + 15* sin(GLfloat(clock()) / CLOCKS_PER_SEC),
                 0, 0, 0, 1;
             moon->Set_Model_Matrix(tmoon);
 
-            tbunny << 0.5, 0, 0, 0 + 10*cos(GLfloat(clock()) / CLOCKS_PER_SEC),
-                0, 0.5, 0, 5 + 10*sin(GLfloat(clock()) / CLOCKS_PER_SEC),
-                0, 0, 0.5, 0,
+            tbunny << 0.5, 0, 0, 5 + 15*cos(GLfloat(clock()) / CLOCKS_PER_SEC),
+                0, 0.5, 0, 3,
+                0, 0, 0.5, -5 + 15* sin(GLfloat(clock()) / CLOCKS_PER_SEC),
                 0, 0, 0, 1;
             bunny->Set_Model_Matrix(tbunny);
 

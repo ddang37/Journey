@@ -93,4 +93,8 @@ void main() {
     
 
     gl_Position = pvm * worldPos;
+    // vtx_pos = pos.xyz;
+    // vtx_pos.z = height(pos.xy);
+
+    // gl_Position = pvm * model * vec4(vtx_pos, 1.);
 }

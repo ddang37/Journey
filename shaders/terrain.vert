@@ -54,11 +54,16 @@ float height(vec2 v)
 {
     float h = 0;
 	// Your implementation starts here
-    h = 0.75 * noiseOctave(v, 10);
+    h = 0.75; //waterfall
+    if ((v.x-2.5)*(v.x-2.5) + (v.y-2.5)*(v.y-2.5) < 1) { //lake
+        h = -0.001 * noiseOctave(v, 4) - 0.15;
+    } else if (v.x*v.x + v.y*v.y > 7) {
+        h = 0.25* noiseOctave(v, 10) + 0.08;
+    }
     if(h < 0)
-        h *= .5;
+        h *= 2;
 	// Your implementation ends here
-    return h * 2.;
+    return h;
 }
 
 uniform mat4 model;		/*model matrix*/
